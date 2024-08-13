@@ -1,21 +1,32 @@
-import express, {name, Request, Response} from 'express';
+import express, { Request, Response } from 'express';
 import http from 'http';
-import {Server, Socket} from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import cors from 'cors';
-import {v1} from "uuid";
+import { v1 as uuidv1 } from 'uuid';
+
+type User = {
+    id: string;
+    name: string;
+}
+
+type Message = {
+    message: string;
+    id: string;
+    user: User;
+}
 
 const app = express();
 
 // Настройка CORS
 app.use(cors({
-    origin: '*', // Замените * на домен фронтенда, если он известен
+    origin: '*',
     methods: ['GET', 'POST']
 }));
 
 const server = http.createServer(app);
 const socketApp = new Server(server, {
     cors: {
-        origin: "*", // Разрешите запросы с любого домена
+        origin: "*", // запросы с любого домена
         methods: ["GET", "POST"]
     }
 });
@@ -24,44 +35,47 @@ app.get('/', (req: Request, res: Response) => {
     res.send("Hello, it's WS server");
 });
 
-const messages = [
-    // {message: 'Hello', id: 'fgjwh', user: {id: 'fghjkldd', name: 'Kataerel'}},
-    // {message: 'Hello K!', id: 'fgjrjsh', user: {id: 'fg4545kldd', name: 'Sam'}},
-    // {message: 'Hello Kata!', id: 'fgjrttjsh', user: {id: 'fg4545kldd', name: 'Sam'}},
-]
+const messages: Message[] = [
+    // Ваши сообщения здесь
+];
 
-const usersState = new Map( )
+const usersState = new Map<Socket, User>();
 
 socketApp.on('connection', (socketChannel: Socket) => {
-    usersState.set(socketChannel, {id: v1(), name: 'anonymous'})
-    socketApp.on('disconnect', () => {
-        usersState.delete(socketChannel)
-    })
-    socketChannel.on('client-name-sent', (name: string) => {
+    usersState.set(socketChannel, {id: uuidv1(), name: 'anonymous'});
 
-        if (typeof name !== 'string') {
-            return
-        }
-
-        const user = usersState.get(socketChannel)
-        user.name = name
-    })
-
-    socketChannel.on('client-message-sent', (message) => {
-        if (typeof message !== 'string') {
-            return
-        }
-
-        const user = usersState.get(socketChannel)
-
-        let messageItem = {
-            message: message, id: v1(), user: {id: user.id, name: user.name}
-        }
-        messages.push(messageItem)
-        socketApp.emit('new-message-sent', messageItem)
+    socketChannel.on('disconnect', () => {
+        usersState.delete(socketChannel);
     });
 
-    socketChannel.emit('init-messages-published', messages)
+    socketChannel.on('client-name-sent', (name: string) => {
+        if (typeof name !== 'string') {
+            return;
+        }
+        const user = usersState.get(socketChannel);
+        if (user) {
+            user.name = name;
+        }
+    });
+
+    socketChannel.on('client-message-sent', (message: string) => {
+        if (typeof message !== 'string') {
+            return;
+        }
+
+        const user = usersState.get(socketChannel);
+        if (user) {
+            const messageItem: Message = {
+                message: message,
+                id: uuidv1(),
+                user: {id: user.id, name: user.name}
+            };
+            messages.push(messageItem);
+            socketApp.emit('new-message-sent', messageItem);
+        }
+    });
+
+    socketChannel.emit('init-messages-published', messages);
     console.log('a user connected');
 });
 
