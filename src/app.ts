@@ -17,18 +17,28 @@ type Message = {
 
 const app = express();
 
+// Установка заголовков для CORS
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', 'https://fireonex.github.io');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    next();
+});
+
 // Настройка CORS
 app.use(cors({
     origin: "https://fireonex.github.io",
-    methods: ['GET', 'POST'],
-    credentials: true
+    methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
+    credentials: true,
+
 }));
 
 const server = http.createServer(app);
 const socketApp = new Server(server, {
     cors: {
         origin: "https://fireonex.github.io",
-        methods: ["GET", "POST"],
+        methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'PATCH', 'DELETE'],
         credentials: true
     }
 });
