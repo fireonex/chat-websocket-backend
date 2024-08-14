@@ -19,15 +19,17 @@ const app = express();
 
 // Настройка CORS
 app.use(cors({
-    origin: 'https://fireonex.github.io/chat-websocket-frontend',
-    methods: ['GET', 'POST']
+    origin: "https://fireonex.github.io",
+    methods: ['GET', 'POST'],
+    credentials: true
 }));
 
 const server = http.createServer(app);
 const socketApp = new Server(server, {
     cors: {
-        origin: "*", // запросы с любого домена
-        methods: ["GET", "POST"]
+        origin: "https://fireonex.github.io",
+        methods: ["GET", "POST"],
+        credentials: true
     }
 });
 
