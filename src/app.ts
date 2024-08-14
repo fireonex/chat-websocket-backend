@@ -34,6 +34,8 @@ app.use(cors({
 
 }));
 
+app.options('*', cors()); // Обработка preflight-запросов
+
 const server = http.createServer(app);
 const socketApp = new Server(server, {
     cors: {
