@@ -19,7 +19,7 @@ const app = express();
 
 // Настройка CORS
 app.use(cors({
-    origin: '*',
+    origin: 'https://fireonex.github.io/chat-websocket-frontend',
     methods: ['GET', 'POST']
 }));
 
